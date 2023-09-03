@@ -15,15 +15,19 @@ const musicsFolder = vocalRemoverFolder + '/musics';
 app.get('/', (req, res) => {
   const offset = parseInt(req.query.offset as string) || 0;
   const limit = parseInt(req.query.limit as string) || 20;
+  const search = req.query.search as string || '';
+  console.log(`offset: ${offset}, limit: ${limit}, search: ${search}`)
 
-  const instrumentalsFiles = fs.readdirSync(resultsFolder).filter((file) => file.endsWith('_Instruments.wav'));
+  const instrumentalsFiles = fs.readdirSync(resultsFolder).filter((file) => {
+    return file.includes('_Instruments.wav') && file.toLowerCase().includes(search.toLowerCase());
+  });
 
   const results = instrumentalsFiles.slice(offset, offset + limit).map((file) => {
     const urlInstruments = new URL(`http://5525.fr:${port}/dl/${file}`);
     const urlVocals = new URL(`http://5525.fr:${port}/dl/${file.replace('_Instruments.wav', '_Vocals.wav')}`);
     const urlOriginal = new URL(`http://5525.fr:${port}/dl/${file.replace('_Instruments.wav', '.mp3')}`);
     return {
-      name: file,
+      name: file.replace('_Instruments.wav', ''),
       instruments_url: urlInstruments,
       vocals_url: urlVocals,
       original_url: urlOriginal,
